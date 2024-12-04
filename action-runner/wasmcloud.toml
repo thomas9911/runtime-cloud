@@ -1,0 +1,8 @@
+name = "action-runner"
+version = "0.0.1"
+language = "rust"
+type = "component"
+
+[component]
+wit_world = "action-runner"
+wasm_target = "wasm32-wasip2"

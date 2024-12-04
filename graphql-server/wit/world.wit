@@ -1,0 +1,12 @@
+package bettyblocks:runtime-cloud;
+
+interface action-runner {
+   execute: func() -> string;
+}
+
+world hello {
+   export wasi:http/incoming-handler@0.2.2;
+   import wasi:logging/logging@0.1.0-draft;
+   import wasi:http/outgoing-handler@0.2.2;
+   import action-runner;
+}
