@@ -18,7 +18,7 @@ spec:
             instances: 1
         - type: link
           properties:
-            target: graphql-server
+            target: action-runner
             namespace: bettyblocks
             package: runtime-cloud
             interfaces: [action-runner]

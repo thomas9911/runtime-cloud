@@ -9,4 +9,5 @@ world hello {
    import wasi:logging/logging@0.1.0-draft;
    import wasi:http/outgoing-handler@0.2.2;
    import action-runner;
+   import wasi:config/runtime@0.2.0-draft;
 }
