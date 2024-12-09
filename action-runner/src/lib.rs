@@ -5,8 +5,7 @@ struct ActionRunner;
 
 impl Guest for ActionRunner {
     fn execute() -> String {
-        let str = format!("henkie");
-        str
+        String::from("harm")
     }
 }
 
