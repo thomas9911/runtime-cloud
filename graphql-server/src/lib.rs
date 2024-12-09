@@ -1,4 +1,6 @@
 use wasmcloud_component::http;
+use wasi::http::outgoing_handler;
+use wasi::http::types::{Fields, OutgoingRequest, Scheme};
 wit_bindgen::generate!({ generate_all });
 // use crate::wasi::logging::logging::*;
 use juniper::{
@@ -6,6 +8,8 @@ use juniper::{
 };
 
 use juniper::FieldResult;
+
+use crate::wasi::io::streams::StreamError;
 
 #[derive(GraphQLEnum, Clone, Copy)]
 enum Episode {
@@ -53,21 +57,59 @@ impl Query {
 
 type Schema = juniper::RootNode<'static, Query, EmptyMutation<Ctx>, EmptySubscription<Ctx>>;
 
-fn gql(query: &str) -> String {
+fn gql(query: &str) -> anyhow::Result<String> {
     // Create a context.
-    let ctx = Ctx(Episode::NewHope);
+    // let ctx = Ctx(Episode::NewHope);
 
-    // Run the execution.
-    let (res, _errors) = juniper::execute_sync(
-        query,
-        None,
-        &Schema::new(Query, EmptyMutation::new(), EmptySubscription::new()),
-        &Variables::new(),
-        &ctx,
-    )
-    .unwrap();
+    // // Run the execution.
+    // let (res, _errors) = juniper::execute_sync(
+    //     query,
+    //     None,
+    //     &Schema::new(Query, EmptyMutation::new(), EmptySubscription::new()),
+    //     &Variables::new(),
+    //     &ctx,
+    // )
+    // .unwrap();
 
-    format!("{}", res)
+    // let request = http::Request::builder()
+    //    .uri("https://jsonplaceholder.typicode.com/todos/1")
+    //    .body(reqwest::Body::from(""))
+    //    .unwrap();
+
+
+    // request.
+
+    let request = OutgoingRequest::new(Fields::new());
+    request.set_scheme(Some(&Scheme::Https)).map_err(|_| anyhow::anyhow!("invalid scheme"))?;
+    request.set_authority(Some("jsonplaceholder.typicode.com")).map_err(|_| anyhow::anyhow!("invalid autho"))?;
+    request.set_path_with_query(Some("/todos/1")).map_err(|_| anyhow::anyhow!("invalid url"))?;
+
+    let response = outgoing_handler::handle(request, None)?;
+    response.subscribe().block();
+
+    let response = response.get().ok_or_else(|| anyhow::anyhow!("invalid something"))?.map_err(|_| anyhow::anyhow!("invalid something"))??;
+    let response_body = response.consume().map_err(|_| anyhow::anyhow!("invalid something"))?;
+
+    let stream = response_body.stream().map_err(|_| anyhow::anyhow!("invalid stream"))?;
+
+    let mut buffer = Vec::new();
+
+    loop {
+        match stream.read(1024 as u64) {
+            Ok(bytes) if bytes.is_empty() => break,
+            Ok(bytes) => {
+                buffer.extend(bytes);
+            }
+            Err(StreamError::Closed) => break,
+            Err(e) => anyhow::bail!("failed to read bytes: {e}"),
+        }
+    }
+
+    // format!("{}", res)
+
+    // reqwest::get("https://jsonplaceholder.typicode.com/todos/1")
+
+    Ok(String::from_utf8(buffer)?)
 }
 
 fn get_config() -> String {
@@ -85,9 +127,15 @@ impl http::Server for Component {
         _request: http::IncomingRequest,
     ) -> http::Result<http::Response<impl http::OutgoingBody>> {
         let str = bettyblocks::runtime_cloud::action_runner::execute();
+        let response = match gql("query { favoriteEpisode }").map_err(|e| e.to_string()) {
+            Ok(x) => Ok(x),
+            Err(e) => {
+                Err(http::ErrorCode::InternalError(Some(e)))
+            }
+        };
         let str = format!(
             "Hallos, {} {} {}!",
-            gql("query { favoriteEpisode }"),
+            response?,
             str,
             get_config()
         );
@@ -103,7 +151,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let res = gql("query { allHuman { id \n name }}");
+        let res = gql("query { allHuman { id \n name }}").unwrap();
         assert_eq!(res, "{\"favoriteEpisode\": \"NEW_HOPE\"}")
     }
 
