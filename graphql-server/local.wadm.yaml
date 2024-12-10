@@ -22,6 +22,12 @@ spec:
             namespace: bettyblocks
             package: runtime-cloud
             interfaces: [action-runner]
+        - type: link
+          properties:
+            target: httpclient
+            namespace: wasi
+            package: http
+            interfaces: [outgoing-handler]
     - name: action-runner
       type: component
       properties:
