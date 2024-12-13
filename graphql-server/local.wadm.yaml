@@ -31,6 +31,38 @@ spec:
         - type: spreadscaler
           properties:
             instances: 1
+        - type: link
+          properties:
+            name: action-example-a
+            target: action-example-a
+            namespace: bettyblocks
+            package: runtime-cloud
+            interfaces: [action]
+        - type: link
+          properties:
+            name: action-example-b
+            target: action-example-b
+            namespace: bettyblocks
+            package: runtime-cloud
+            interfaces: [action]
+    - name: action-example-a
+      type: component
+      properties:
+        image: file://../action-example-a/build/action_example_a_s.wasm
+      traits:
+        # Govern the spread/scheduling of the component
+        - type: spreadscaler
+          properties:
+            instances: 1
+    - name: action-example-b
+      type: component
+      properties:
+        image: file://../action-example-b/build/action_example_b_s.wasm
+      traits:
+        # Govern the spread/scheduling of the component
+        - type: spreadscaler
+          properties:
+            instances: 1
 
     # Add a capability provider that enables HTTP access
     - name: httpserver
