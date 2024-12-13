@@ -4,6 +4,12 @@ interface action-runner {
    execute: func() -> string;          
  }
 
+interface action {
+   execute: func() -> string;          
+ }
+
 world component {
    export action-runner;
+   import action;
+   import wasmcloud:bus/lattice@1.0.0;
 }

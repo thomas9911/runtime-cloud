@@ -20,3 +20,5 @@ Cargo.lock
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 action-runner/.DS_Store
+action-runner/build/action_runner_s.wasm
+action-runner/build/action_runner.wasm

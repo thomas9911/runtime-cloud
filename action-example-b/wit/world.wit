@@ -1,0 +1,9 @@
+package bettyblocks:runtime-cloud;
+
+interface action {
+   execute: func() -> string;          
+ }
+
+world component {
+   export action;
+}
